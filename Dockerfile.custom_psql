@@ -1,0 +1,12 @@
+FROM postgres:14.10
+
+RUN apt-get update -y
+RUN apt-get install -y lsof
+
+#build db
+RUN pg_isready
+RUN mkdir /psql_data
+COPY data/cnv_db.sql /psql_data/
+RUN psql -h 172.17.0.1 -p 5432 -U postgres -c "create database cnv_db;"
+RUN pg_restore -v -h 172.17.0.1 -p 5432 -U postgres -d cnv_db -j 2 /psql_data/cnv_db.sql
+RUN psql -h 172.17.0.1 -p 5432 -U postgres -c "select * from cnv_main limit 10;"

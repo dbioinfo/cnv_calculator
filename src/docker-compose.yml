@@ -1,0 +1,47 @@
+version: "3.3"
+services:
+  cnv_db:
+    image: postgres:14.10 
+    restart: 'always'
+    environment: 
+      #PGDATA: "/var/lib/postgresql/14/main"
+      POSTGRES_DB: "public_cnv"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+    volumes:
+      - "/home/ubuntu/cnv_calculator/postgres_bk/cnv.bk.sql:/psql_data/cnv_db.sql"
+      - "/home/ubuntu/cnv_calculator/data:/data" 
+      - "/home/ubuntu/cnv_calculator/src/psql_docker_init.sh:/docker-entrypoint-initdb.d/psql_docker_init.sh" 
+  shiny_frontend:
+    image: dylan/cnv_env
+    restart: 'always'
+    ports:
+      - "8787:8787"
+      - "3838:3838"
+    environment:
+      DISABLE_AUTH: "true"
+    volumes:
+      - "/home/ubuntu/cnv_calculator/src:/src"
+      - "/home/ubuntu/cnv_calculator/src/app.R:/srv/shiny-server/cnv-server/app.R"
+    depends_on:
+      - "cnv_db"
+
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"  
+    volumes:
+      - "/home/ubuntu/cnv_calculator/src/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "/home/ubuntu/cnv_calculator/src/htpasswd:/etc/nginx/.htpasswd:ro"
+      - /etc/nginx/ssl
+      - /home/ubuntu/cnv_calculator/nginx/ssl/selfsigned.crt:/etc/nginx/ssl/selfsigned.crt:ro
+      - /home/ubuntu/cnv_calculator/nginx/ssl/selfsigned.key:/etc/nginx/ssl/selfsigned.key:ro
+    depends_on:
+      - shiny_frontend
+
+
+
+
+
