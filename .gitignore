@@ -1,2 +1,4 @@
 nginx/
 postgres_bk/
+.ssh*
+Docker*
